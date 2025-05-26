@@ -14,20 +14,24 @@ namespace CustomerApiProject.Controllers
     {
         private readonly IDataProvider _dataProvider;
         private readonly LicenseGenerator _generator;
+        private readonly EmailService _emailService;
 
-        public LicenseController(IDataProvider dataProvider,
-            LicenseGenerator licenseGenerator)
+        public LicenseController(
+            IDataProvider dataProvider,
+            LicenseGenerator licenseGenerator,
+            EmailService emailService)
         {
             _dataProvider = dataProvider;
             _generator = licenseGenerator;
+            _emailService = emailService;
         }
 
         [HttpGet("generateLicense")]
         public ActionResult GenerateLicense([FromQuery] int orderId)
-        {          
-            
+        {
+
             var order = _dataProvider.GetOrder(orderId);
-            if(order == null)
+            if (order == null)
             {
                 return NotFound("Order not found");
             }
@@ -52,7 +56,7 @@ namespace CustomerApiProject.Controllers
                 RegFileName = customInfo.LicenseFileBinaryName,
                 RegValueName = customInfo.LicenseRegistryValueName,
             };
-            MemoryStream licenseMS = _generator.GenerateLicense(licenseParameters);         
+            MemoryStream licenseMS = _generator.GenerateLicense(licenseParameters);
             var contentType = "application/octet-stream";
             var fileName = customInfo.LicenseFileBinaryName;
 
@@ -101,6 +105,47 @@ namespace CustomerApiProject.Controllers
 
             return File(zipStream, "application/zip", zipFileName);
         }
+
+        [HttpPost("generateAndSend")]
+        public async Task<ActionResult> GenerateAndSendAsync([FromBody] GenerateMultiLicensesRequest request)
+        {
+            if (request.Emails == null || request.Emails.Length == 0)
+            {
+                throw new BadHttpRequestException("At least 1 email address should be added");
+            }
+            
+            // 1. Generate the file result
+            var fileResult = (FileStreamResult)GenerateMultipleLicenses(request);
+
+            // 2. Extract bytes + metadata
+            var (bytes, name, type) = await GetFileFromActionResult(fileResult);
+
+            // 3. Send mail (choose one)
+            _emailService.SendFileWithSmtpClient(bytes, name, type, request.Emails);
+  
+            // 4. Return success
+            return Ok(new { message = "Sent by email!" });
+        }
+
+        private async Task<(byte[] fileBytes, string fileName, string contentType)> GetFileFromActionResult(IActionResult actionResult)
+        {
+            if (actionResult is FileContentResult contentResult)
+            {
+                return (contentResult.FileContents,
+                        contentResult.FileDownloadName,
+                        contentResult.ContentType);
+            }
+            else if (actionResult is FileStreamResult streamResult)
+            {
+                using var ms = new MemoryStream();
+                await streamResult.FileStream.CopyToAsync(ms);
+                return (ms.ToArray(),
+                        streamResult.FileDownloadName,
+                        streamResult.ContentType);
+            }
+
+            throw new InvalidOperationException("Unsupported result type");
+        }
     }
-    
+
 }

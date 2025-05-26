@@ -54,3 +54,5 @@ product/
 WinLicenseBackend/WinLicenseBackend.csproj
 *.dll
 WinLicenseBackend/Resources/
+WinLicenseBackend/appsettings.json
+WinLicenseBackend/appsettingsExample.Development.json

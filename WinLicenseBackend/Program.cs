@@ -1,3 +1,4 @@
+using WinLicenseBackend;
 using WinLicenseBackend.DataProviders;
 using WinLicenseBackend.Services;
 
@@ -28,6 +29,10 @@ var provider = new XmlDataProvider(
 var generator = new LicenseGenerator();
 builder.Services.AddSingleton < IDataProvider >( sp =>  provider);
 builder.Services.AddSingleton< LicenseGenerator >(sp => generator);
+builder.Services.AddSingleton<EmailService>();
+builder.Services.AddSingleton(sp =>
+    builder.Configuration.GetSection("AppSettings").Get<AppSettings>());
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
