@@ -100,7 +100,7 @@ namespace WinLicenseBackend.DataProviders
                 Product_Name = (string)row.Attribute("Product_Name"),
                 Product_Version = (string)row.Attribute("Product_Version"),
                 Product_Description = (string)row.Attribute("Product_Description"),
-                Product_Icon = HexToBase64((string)row.Attribute("Product_Icon")), 
+                Product_Icon = ByteArrayColorConverter.ConvertMagentaToWhiteAndToBase64((string)row.Attribute("Product_Icon")), 
                 Product_UnitPrice = ParseDouble(row.Attribute("Product_UnitPrice")?.Value),
                 Product_ShippingFee = ParseDouble(row.Attribute("Product_ShippingFee")?.Value),
                 Product_ServiceFee = ParseDouble(row.Attribute("Product_ServiceFee")?.Value),
@@ -181,23 +181,6 @@ namespace WinLicenseBackend.DataProviders
 
         private static byte? ParseByte(string value) =>
             byte.TryParse(value, out var b) ? b : (byte?)null;
-
-        private string HexToBase64(string hex)
-        {
-            // Remove optional "0x" prefix
-            if (hex.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-                hex = hex.Substring(2);
-
-            // Convert hex to byte[]
-            byte[] bytes = new byte[hex.Length / 2];
-            for (int i = 0; i < hex.Length; i += 2)
-            {
-                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
-            }
-
-            // Convert byte[] to base64
-            return Convert.ToBase64String(bytes);
-        }
 
         private ParsedLicense ParseOrderRegistrationContent(string input)
         {
