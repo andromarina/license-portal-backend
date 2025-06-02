@@ -1,3 +1,6 @@
+using AuthenticationService;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using WinLicenseBackend;
 using WinLicenseBackend.DataProviders;
 using WinLicenseBackend.Services;
@@ -8,9 +11,9 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins("https://localhost:4200")
               .AllowAnyHeader()
-              .AllowCredentials()
+              .AllowCredentials() 
               .AllowAnyMethod()
               .WithExposedHeaders("Content-Disposition");
     });
@@ -29,10 +32,16 @@ var provider = new XmlDataProvider(
 var generator = new LicenseGenerator();
 builder.Services.AddSingleton < IDataProvider >( sp =>  provider);
 builder.Services.AddSingleton< LicenseGenerator >(sp => generator);
+// Configure database
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("AuthenticationDBConnection")));
+
+// Add authentication services
+builder.Services.AddAuthenticationServices(builder.Configuration);
 builder.Services.AddSingleton<EmailService>();
 builder.Services.AddSingleton(sp =>
     builder.Configuration.GetSection("AppSettings").Get<AppSettings>());
-
+builder.Services.AddAdminUserInitializer();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

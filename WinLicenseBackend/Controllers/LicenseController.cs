@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel;
 using WinLicenseBackend;
 using WinLicenseBackend.DataProviders;
 using WinLicenseBackend.Models;
@@ -120,8 +119,11 @@ namespace CustomerApiProject.Controllers
             // 2. Extract bytes + metadata
             var (bytes, name, type) = await GetFileFromActionResult(fileResult);
 
+            string[] productsList = _dataProvider.GetProductsFromOrders(request.OrderIds).Select(o => o.Product_Name).ToArray();
+            Order order = _dataProvider.GetOrder(request.OrderIds[0]);
+            string userName = order.Order_RegistrationContent?.UserName ?? "Customer";
             // 3. Send mail (choose one)
-            _emailService.SendFileWithSmtpClient(bytes, name, type, request.Emails);
+            _emailService.SendFileWithSmtpClient(bytes, name, productsList,type, request.Emails[0], userName);
   
             // 4. Return success
             return Ok(new { message = "Sent by email!" });

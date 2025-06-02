@@ -56,3 +56,5 @@ WinLicenseBackend/WinLicenseBackend.csproj
 WinLicenseBackend/Resources/
 WinLicenseBackend/appsettings.json
 WinLicenseBackend/appsettingsExample.Development.json
+WinLicenseBackend/dkim/dkim-private-key.pem
+WinLicenseBackend/Services/CreateAdminUser.cs

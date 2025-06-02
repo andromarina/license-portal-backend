@@ -116,6 +116,18 @@ namespace WinLicenseBackend.DataProviders
             return GetProducts().Where(p => p.ID_Product == productId).SingleOrDefault();
         }
 
+        public IEnumerable<Product> GetProductsFromOrders(int[] orderIds)
+        {
+            IList<Product> products = new List<Product>();
+            foreach (var orderId in orderIds)
+            {
+                var order = GetOrder(orderId);                
+                var product = GetProduct(order.ID_Product ?? 0);
+                products.Add(product);
+            }
+            return products;
+        }
+
         public IEnumerable<Order> GetOrders()
         {
             var doc = XDocument.Load(_ordersPath);

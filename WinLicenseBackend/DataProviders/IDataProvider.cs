@@ -9,6 +9,7 @@ namespace WinLicenseBackend.DataProviders
         IEnumerable<Customer> GetCustomers();
         Customer GetCustomer(int customerId);
         IEnumerable<Product> GetProducts();
+        IEnumerable<Product> GetProductsFromOrders(int[] orderId);
         Product GetProduct(int productId);
         IEnumerable<Order> GetOrders();
         Order GetOrder(int orderId);

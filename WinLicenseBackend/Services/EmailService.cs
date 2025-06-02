@@ -1,5 +1,11 @@
-﻿using System.Net.Mail;
+﻿
 using System.Net;
+using WebApi.Helpers;
+using System.Text;
+using MimeKit.Cryptography;
+using MimeKit;
+using MailKit.Net.Smtp;
+using System.IO;
 
 namespace WinLicenseBackend.Services
 {
@@ -10,32 +16,74 @@ namespace WinLicenseBackend.Services
             _settings = appSettings;
         }
 
-        public void SendFileWithSmtpClient(
-            byte[] fileBytes,
+        public async Task SendFileWithSmtpClient(byte[] fileBytes,
             string fileName,
+            string[] productsList,
             string contentType,
-            string[] toEmails)
+            string toEmail,
+            string customerName)
         {
-            var mail = new MailMessage();
-            mail.From = new MailAddress(_settings.EmailFrom, _settings.EmailTitle);
-            foreach(string email in toEmails)
+            var message = new MimeMessage();
+            message.From.Add(MailboxAddress.Parse(_settings.EmailFrom));
+            message.To.Add(MailboxAddress.Parse(toEmail));
+            message.Subject = "Your licenses are ready";
+            string body = FileReaderUtils.ReadFileContent("mail_template.html");
+            body = body.Replace("%ProductsList%", PrepareProductsList(productsList));
+            body = body.Replace("%CustomerName%", customerName);
+            var htmlBody = new TextPart("html")
             {
-                mail.To.Add(email);
-            }           
-            mail.Subject = "Your licenses are ready";
-            mail.Body = "Please see the attached ZIP file containing your licenses.";
-
-            // Create attachment from in-memory bytes
-            var stream = new MemoryStream(fileBytes);
-            var attachment = new Attachment(stream, fileName, contentType);
-            mail.Attachments.Add(attachment);
-
-            using var client = new SmtpClient(_settings.SmtpHost, _settings.SmtpPort)
-            {
-                Credentials = new NetworkCredential(_settings.SmtpUser, _settings.SmtpPass),
-                EnableSsl = _settings.EnableSMTPssl,
+                Text = body,
             };
-            client.Send(mail);
+
+            var stream = new MemoryStream(fileBytes);
+            // Load the attachment
+            var attachment = new MimePart("application", "zip") // adjust MIME type as needed
+            {
+                Content = new MimeContent(stream, ContentEncoding.Default),
+                ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
+                ContentTransferEncoding = ContentEncoding.Base64,
+                FileName = fileName
+            };
+
+            // Combine into multipart
+            var multipart = new Multipart("mixed");
+            multipart.Add(htmlBody);
+            multipart.Add(attachment);
+
+            // Set the message body
+            message.Body = multipart;
+            message.Date = DateTimeOffset.UtcNow;
+           
+            var signer = new DkimSigner("dkim/dkim-private-key.pem", _settings.Domain, "default")
+            {
+                SignatureAlgorithm = DkimSignatureAlgorithm.RsaSha256,
+                HeaderCanonicalizationAlgorithm = DkimCanonicalizationAlgorithm.Relaxed,
+                BodyCanonicalizationAlgorithm = DkimCanonicalizationAlgorithm.Relaxed
+            };
+
+            var headersToSign = new[] { "From", "To", "Subject", "Date" };
+            signer.Sign(message, headersToSign); 
+
+            using var smtp = new SmtpClient();
+            await smtp.ConnectAsync(_settings.SmtpHost, _settings.SmtpPort, false);
+            await smtp.AuthenticateAsync(_settings.SmtpUser, _settings.SmtpPass);
+            await smtp.SendAsync(message);
+            await smtp.DisconnectAsync(true);
+
+            Console.WriteLine("DKIM signed message sent.");
+        }
+
+
+        private string PrepareProductsList(string[] productsList)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach(string product in productsList)
+            {
+                sb.Append("<li>");
+                sb.Append(product);
+                sb.Append("</li>");
+            }
+            return sb.ToString();
         }
 
     }
