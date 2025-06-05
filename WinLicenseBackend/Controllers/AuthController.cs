@@ -108,6 +108,14 @@ namespace CustomerApiProject.Controllers
             return Ok(new { Message = "Logged out successfully" });
         }
 
+        [HttpGet("health")]
+        public IActionResult CheckHealth()
+        {
+            Console.WriteLine("Health Check is fine");
+            return Ok(new { message = "Server is up and running" });
+        }
+
+
         //[HttpPost("createAdmin")]
         //public async Task<IActionResult> CreateAdmin([FromBody] LoginRequest model)
         //{
