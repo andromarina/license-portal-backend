@@ -1,6 +1,6 @@
 using AuthenticationService;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Logging;
 using WinLicenseBackend;
 using WinLicenseBackend.DataProviders;
 using WinLicenseBackend.Services;
@@ -50,6 +50,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseCors("AllowFrontend");
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

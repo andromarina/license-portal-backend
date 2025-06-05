@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WinLicenseBackend;
 using WinLicenseBackend.DataProviders;
@@ -16,14 +18,14 @@ namespace CustomerApiProject.Controllers
             _dataProvider = dataProvider;
         }
 
-        [HttpGet("getCustomers")]
+        [HttpGet("getCustomers"), Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public ActionResult<IEnumerable<Customer>> GetAllCustomers()
         {
             var customers = _dataProvider.GetCustomers();
             return Ok(customers);
         }
 
-        [HttpGet("getCustomerOrders")]
+        [HttpGet("getCustomerOrders"), Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public ActionResult<IEnumerable<OrderDTO>> GetCustomerOrders([FromQuery] int customerId)
         {
             IEnumerable<OrderDTO> orders = _dataProvider.GetOrders()

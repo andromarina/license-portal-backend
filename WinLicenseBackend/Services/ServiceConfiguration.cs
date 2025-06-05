@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using AuthenticationService.Data;
 using WinLicenseBackend.Models;
+using Microsoft.IdentityModel.Logging;
 
 namespace WinLicenseBackend.Services
 {
@@ -46,6 +47,7 @@ namespace WinLicenseBackend.Services
             {
                 options.SaveToken = true;
                 options.RequireHttpsMetadata = true;
+                options.UseSecurityTokenValidators = true;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -56,6 +58,20 @@ namespace WinLicenseBackend.Services
                     ValidAudiences = [configuration["JWT:ValidAudience"]],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"])),
                     ClockSkew = TimeSpan.Zero // Remove delay of token when expire
+                };
+                options.Events = new JwtBearerEvents
+                {
+
+                    OnAuthenticationFailed = context =>
+                    {
+                        Console.WriteLine("Authentication failed: " + context.Exception.Message);
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = context =>
+                    {
+                        Console.WriteLine("Token validated for user: " + context.Principal.Identity.Name);
+                        return Task.CompletedTask;
+                    }
                 };
             });
 

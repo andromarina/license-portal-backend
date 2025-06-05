@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WinLicenseBackend;
 using WinLicenseBackend.DataProviders;
@@ -25,7 +27,7 @@ namespace CustomerApiProject.Controllers
             _emailService = emailService;
         }
 
-        [HttpGet("generateLicense")]
+        [HttpGet("generateLicense"), Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public ActionResult GenerateLicense([FromQuery] int orderId)
         {
 
@@ -62,7 +64,7 @@ namespace CustomerApiProject.Controllers
             return File(licenseMS, contentType, fileName);
         }
 
-        [HttpPost("generateMultipleLicenses")]
+        [HttpPost("generateMultipleLicenses"), Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public ActionResult GenerateMultipleLicenses([FromBody] GenerateMultiLicensesRequest request)
         {
             int[] orderIds = request.OrderIds;
@@ -105,7 +107,7 @@ namespace CustomerApiProject.Controllers
             return File(zipStream, "application/zip", zipFileName);
         }
 
-        [HttpPost("generateAndSend")]
+        [HttpPost("generateAndSend"), Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult> GenerateAndSendAsync([FromBody] GenerateMultiLicensesRequest request)
         {
             if (request.Emails == null || request.Emails.Length == 0)
