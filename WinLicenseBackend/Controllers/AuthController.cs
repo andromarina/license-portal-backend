@@ -111,7 +111,6 @@ namespace CustomerApiProject.Controllers
         [HttpGet("health")]
         public IActionResult CheckHealth()
         {
-            Console.WriteLine("Health Check is fine");
             return Ok(new { message = "Server is up and running" });
         }
 

@@ -1,9 +1,12 @@
 using AuthenticationService;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Logging;
+using System.Reflection.Metadata;
 using WinLicenseBackend;
 using WinLicenseBackend.DataProviders;
 using WinLicenseBackend.Services;
+
+
+NLog.Logger _logger = NLog.LogManager.GetCurrentClassLogger();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,4 +56,5 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+_logger.Info("App started successfully");
 app.Run();
