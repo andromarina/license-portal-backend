@@ -42,6 +42,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Add authentication services
 builder.Services.AddAuthenticationServices(builder.Configuration);
 builder.Services.AddSingleton<EmailService>();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<GlobalExceptionFilter>();
+});
 builder.Services.AddSingleton(sp =>
     builder.Configuration.GetSection("AppSettings").Get<AppSettings>());
 builder.Services.AddAdminUserInitializer();

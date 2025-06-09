@@ -1,6 +1,6 @@
 ﻿using WinLicenseBackend.Models;
 
-namespace WinLicenseBackend
+namespace WinLicenseBackend.Services
 {
     public class GenerateLicenseParameters
     {        

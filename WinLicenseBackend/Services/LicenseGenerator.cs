@@ -53,7 +53,7 @@ namespace WinLicenseBackend.Services
                 }
 
                 MemoryStream ms = new MemoryStream();
-                using BinaryWriter w = new BinaryWriter(ms);
+                BinaryWriter w = new BinaryWriter(ms);
                 for (int i = 0; i < SizeKey; i++)
                 {
                     w.Write((byte)LicenseKeyBuff[i]);
