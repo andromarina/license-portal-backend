@@ -1,3 +1,4 @@
+using MailKit.Search;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -92,6 +93,10 @@ namespace CustomerApiProject.Controllers
                 }
 
                 var licenseParams = _generator.GetLicenseParameters(order, product);
+                if(request.NumDays > 0)
+                {
+                    licenseParams.NumDays = request.NumDays.Value;
+                }
                 var licenseStream = _generator.GenerateLicense(licenseParams);
                 string fileName = product.Product_CustomInfo?.LicenseFileBinaryName ?? $"license_{orderId}.dat";
 
